@@ -28,8 +28,15 @@ end
 
 function canwalk()
   --get the map in the direction the player is oriented
-  v=mget(flr(player.x/8)+player.direction,flr((player.y)/8))
-  --see if it’s flagged as wall
+  v=mget(flr((player.x+4+player.direction*4)/8),flr((player.y)/8))
+  -- --see if it’s flagged as wall
+  return not fget(v,0)
+end
+
+function canjump()
+  --get the map in the direction the player is oriented
+  v=mget(flr((player.x+4)/8),flr((player.y)/8))
+  -- --see if it’s flagged as wall
   return not fget(v,0)
 end
 
@@ -75,8 +82,10 @@ function _update()
   if player.state==2 then
     player.sprite=player.sprites[2]
       if (canfall()) then
-      if (b0) player.x-=1 --steer left
-      if (b1) player.x+=1 --steer right
+        if (canwalk()) then
+          if (b0) player.x-=1 --steer left if no collisions
+          if (b1) player.x+=1 --steer right if no collisions
+        end
       player.y+=min(4,player.statetimer) --move the player
       if (not canfall()) player.y=flr(player.y/8)*8 --check ground contact
     else
@@ -88,9 +97,13 @@ function _update()
   --jump
   if player.state==3 then
     player.sprite=player.sprites[2]
+    if (canjump()) then
     player.y-=6-player.statetimer
-    if (b0) player.x-=2
-    if (b1) player.x+=2
+    end
+    if (canwalk()) then
+      if (b0) player.x-=2 --steer left if no collisions
+      if (b1) player.x+=2 --steer right if no collisions
+    end
     if (not b2 or player.statetimer>7) then
       changestate(0)
     end
